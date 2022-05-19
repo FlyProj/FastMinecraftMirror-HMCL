@@ -37,7 +37,7 @@ public class MojangDownloadProvider implements DownloadProvider {
     private final OptiFineBMCLVersionList optifine;
 
     public MojangDownloadProvider() {
-        String apiRoot = "https://bmclapi2.bangbang93.com";
+        String apiRoot = "https://launchermeta.fastmcmirror.org";
 
         this.game = new GameVersionList(this);
         this.fabric = new FabricVersionList(this);
@@ -49,12 +49,12 @@ public class MojangDownloadProvider implements DownloadProvider {
 
     @Override
     public String getVersionListURL() {
-        return "https://launchermeta.mojang.com/mc/game/version_manifest.json";
+        return "https://launchermeta.fastmcmirror.org/mc/game/version_manifest.json";
     }
 
     @Override
     public String getAssetBaseURL() {
-        return "https://resources.download.minecraft.net/";
+        return "https://resources.fastmcmirror.org/";
     }
 
     @Override
@@ -79,7 +79,7 @@ public class MojangDownloadProvider implements DownloadProvider {
 
     @Override
     public String injectURL(String baseURL) {
-        return baseURL;
+        return baseURL.replaceFirst("https://launchermeta.mojang.com","https://launchermeta.fastmcmirror.org").replaceFirst("https://resources.download.minecraft.net","https://resources.fastmcmirror.org").replaceFirst("https://libraries.minecraft.net","https://libraries.fastmcmirror.org");
     }
 
     @Override
