@@ -82,5 +82,5 @@ public final class ForgeVersionList extends VersionList<ForgeRemoteVersion> {
                 });
     }
 
-    public static final String FORGE_LIST = "https://files.minecraftforge.net/maven/net/minecraftforge/forge/json";
+    public static final String FORGE_LIST = "https://forge.fastmcmirror.org/net/minecraftforge/forge/json";
 }
