@@ -50,7 +50,7 @@ public final class OptiFineBMCLVersionList extends VersionList<OptiFineRemoteVer
 
     @Override
     public CompletableFuture<?> refreshAsync() {
-        return HttpRequest.GET(apiRoot + "/optifine/versionlist").<List<OptiFineVersion>>getJsonAsync(new TypeToken<List<OptiFineVersion>>() {
+        return HttpRequest.GET("https://optifine.fastmcmirror.org/versionList").<List<OptiFineVersion>>getJsonAsync(new TypeToken<List<OptiFineVersion>>() {
         }.getType())
                 .thenAcceptAsync(root -> {
                     lock.writeLock().lock();
@@ -60,7 +60,7 @@ public final class OptiFineBMCLVersionList extends VersionList<OptiFineRemoteVer
                         Set<String> duplicates = new HashSet<>();
                         for (OptiFineVersion element : root) {
                             String version = element.getType() + "_" + element.getPatch();
-                            String mirror = "https://bmclapi2.bangbang93.com/optifine/" + element.getGameVersion() + "/" + element.getType() + "/" + element.getPatch();
+                            String mirror = "https://optifine.fastmcmirror.org/OptiFine_" + element.getGameVersion() + "_" + element.getType() + "_" + element.getPatch() + ".jar";
                             if (!duplicates.add(mirror))
                                 continue;
 
