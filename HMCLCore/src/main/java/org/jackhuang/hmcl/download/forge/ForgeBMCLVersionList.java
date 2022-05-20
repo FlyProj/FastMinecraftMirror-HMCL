@@ -17,39 +17,21 @@
  */
 package org.jackhuang.hmcl.download.forge;
 
-import com.google.gson.JsonParseException;
-import com.google.gson.reflect.TypeToken;
+import org.jackhuang.hmcl.download.DownloadProvider;
 import org.jackhuang.hmcl.download.VersionList;
-import org.jackhuang.hmcl.util.Immutable;
 import org.jackhuang.hmcl.util.StringUtils;
-import org.jackhuang.hmcl.util.gson.Validation;
 import org.jackhuang.hmcl.util.io.HttpRequest;
-import org.jackhuang.hmcl.util.io.NetworkUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jackhuang.hmcl.util.versioning.VersionNumber;
 
-import java.time.Instant;
-import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.logging.Level;
-
-import static org.jackhuang.hmcl.util.Lang.mapOf;
-import static org.jackhuang.hmcl.util.Lang.wrap;
-import static org.jackhuang.hmcl.util.Logging.LOG;
-import static org.jackhuang.hmcl.util.Pair.pair;
 
 public final class ForgeBMCLVersionList extends VersionList<ForgeRemoteVersion> {
-    private final String apiRoot;
+    private final DownloadProvider downloadProvider;
 
-    /**
-     * @param apiRoot API Root of BMCLAPI implementations
-     */
-    public ForgeBMCLVersionList(String apiRoot) {
-        this.apiRoot = apiRoot;
+    public ForgeVersionList(DownloadProvider downloadProvider) {
+        this.downloadProvider = downloadProvider;
     }
 
     @Override
@@ -58,61 +40,37 @@ public final class ForgeBMCLVersionList extends VersionList<ForgeRemoteVersion> 
     }
 
     @Override
-    public CompletableFuture<?> loadAsync() {
-        throw new UnsupportedOperationException("ForgeBMCLVersionList does not support loading the entire Forge remote version list.");
-    }
-
-    @Override
     public CompletableFuture<?> refreshAsync() {
-        throw new UnsupportedOperationException("ForgeBMCLVersionList does not support loading the entire Forge remote version list.");
-    }
-
-    @Override
-    public CompletableFuture<?> refreshAsync(String gameVersion) {
-        return CompletableFuture.completedFuture(null)
-                .thenApplyAsync(wrap(unused -> HttpRequest.GET(apiRoot + "/forge/minecraft/" + gameVersion).<List<ForgeVersion>>getJson(new TypeToken<List<ForgeVersion>>() {
-                }.getType())))
-                .thenAcceptAsync(forgeVersions -> {
+        return HttpRequest.GET(downloadProvider.injectURL(FORGE_LIST)).getJsonAsync(ForgeVersionRoot.class)
+                .thenAcceptAsync(root -> {
                     lock.writeLock().lock();
 
                     try {
-                        versions.clear(gameVersion);
-                        if (forgeVersions == null) return;
-                        for (ForgeVersion version : forgeVersions) {
-                            if (version == null)
-                                continue;
-                            List<String> urls = new ArrayList<>();
-                            for (ForgeVersion.File file : version.getFiles())
-                                if ("installer".equals(file.getCategory()) && "jar".equals(file.getFormat())) {
-                                    String classifier = gameVersion + "-" + version.getVersion()
-                                            + (StringUtils.isNotBlank(version.getBranch()) ? "-" + version.getBranch() : "");
-                                    String fileName1 = "forge-" + classifier + "-" + file.getCategory() + "." + file.getFormat();
-                                    String fileName2 = "forge-" + classifier + "-" + gameVersion + "-" + file.getCategory() + "." + file.getFormat();
-                                    urls.add("https://files.minecraftforge.net/maven/net/minecraftforge/forge/" + classifier + "/" + fileName1);
-                                    urls.add("https://files.minecraftforge.net/maven/net/minecraftforge/forge/" + classifier + "-" + gameVersion + "/" + fileName2);
-                                    urls.add(NetworkUtils.withQuery("https://bmclapi2.bangbang93.com/forge/download", mapOf(
-                                            pair("mcversion", version.getGameVersion()),
-                                            pair("version", version.getVersion()),
-                                            pair("branch", version.getBranch()),
-                                            pair("category", file.getCategory()),
-                                            pair("format", file.getFormat())
-                                    )));
-                                }
+                        if (root == null)
+                            return;
+                        versions.clear();
 
-                            if (urls.isEmpty())
-                                continue;
+                        for (Map.Entry<String, int[]> entry : root.getGameVersions().entrySet()) {
+                            String gameVersion = VersionNumber.normalize(entry.getKey());
+                            for (int v : entry.getValue()) {
+                                ForgeVersion version = root.getNumber().get(v);
+                                if (version == null)
+                                    continue;
+                                String jar = null;
+                                for (String[] file : version.getFiles())
+                                    if (file.length > 1 && "installer".equals(file[1])) {
+                                        String classifier = version.getGameVersion() + "-" + version.getVersion()
+                                                + (StringUtils.isNotBlank(version.getBranch()) ? "-" + version.getBranch() : "");
+                                        String fileName = root.getArtifact() + "-" + classifier + "-" + file[1] + "." + file[0];
+                                        jar = root.getWebPath() + classifier + "/" + fileName;
+                                    }
 
-                            Instant releaseDate = null;
-                            if (version.getModified() != null) {
-                                try {
-                                    releaseDate = Instant.parse(version.getModified());
-                                } catch (DateTimeParseException e) {
-                                    LOG.log(Level.WARNING, "Failed to parse instant " + version.getModified(), e);
-                                }
+                                if (jar == null)
+                                    continue;
+                                versions.put(gameVersion, new ForgeRemoteVersion(
+                                        version.getGameVersion(), version.getVersion(), null, Collections.singletonList(jar)
+                                ));
                             }
-
-                            versions.put(gameVersion, new ForgeRemoteVersion(
-                                    version.getGameVersion(), version.getVersion(), releaseDate, urls));
                         }
                     } finally {
                         lock.writeLock().unlock();
@@ -120,105 +78,5 @@ public final class ForgeBMCLVersionList extends VersionList<ForgeRemoteVersion> 
                 });
     }
 
-    @Override
-    public Optional<ForgeRemoteVersion> getVersion(String gameVersion, String remoteVersion) {
-        remoteVersion = StringUtils.substringAfter(remoteVersion, "-", remoteVersion);
-        return super.getVersion(gameVersion, remoteVersion);
-    }
-
-    @Immutable
-    public static final class ForgeVersion implements Validation {
-
-        private final String branch;
-        private final int build;
-        private final String mcversion;
-        private final String modified;
-        private final String version;
-        private final List<File> files;
-
-        /**
-         * No-arg constructor for Gson.
-         */
-        @SuppressWarnings("unused")
-        public ForgeVersion() {
-            this(null, 0, "", null, "", Collections.emptyList());
-        }
-
-        public ForgeVersion(String branch, int build, String mcversion, String modified, String version, List<File> files) {
-            this.branch = branch;
-            this.build = build;
-            this.mcversion = mcversion;
-            this.modified = modified;
-            this.version = version;
-            this.files = files;
-        }
-
-        @Nullable
-        public String getBranch() {
-            return branch;
-        }
-
-        public int getBuild() {
-            return build;
-        }
-
-        @NotNull
-        public String getGameVersion() {
-            return mcversion;
-        }
-
-        @Nullable
-        public String getModified() {
-            return modified;
-        }
-
-        @NotNull
-        public String getVersion() {
-            return version;
-        }
-
-        @NotNull
-        public List<File> getFiles() {
-            return files;
-        }
-
-        @Override
-        public void validate() throws JsonParseException {
-            if (files == null)
-                throw new JsonParseException("ForgeVersion files cannot be null");
-            if (version == null)
-                throw new JsonParseException("ForgeVersion version cannot be null");
-            if (mcversion == null)
-                throw new JsonParseException("ForgeVersion mcversion cannot be null");
-        }
-
-        @Immutable
-        public static final class File {
-            private final String format;
-            private final String category;
-            private final String hash;
-
-            public File() {
-                this("", "", "");
-            }
-
-            public File(String format, String category, String hash) {
-                this.format = format;
-                this.category = category;
-                this.hash = hash;
-            }
-
-            public String getFormat() {
-                return format;
-            }
-
-            public String getCategory() {
-                return category;
-            }
-
-            public String getHash() {
-                return hash;
-            }
-        }
-    }
+    public static final String FORGE_LIST = "https://forge.fastmcmirror.org/net/minecraftforge/forge/json";
 }
