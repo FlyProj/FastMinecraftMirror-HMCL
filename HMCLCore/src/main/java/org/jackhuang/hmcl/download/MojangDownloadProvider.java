@@ -79,7 +79,7 @@ public class MojangDownloadProvider implements DownloadProvider {
 
     @Override
     public String injectURL(String baseURL) {
-        return baseURL.replaceFirst("https://launchermeta.mojang.com","https://launchermeta.fastmcmirror.org").replaceFirst("https://resources.download.minecraft.net","https://resources.fastmcmirror.org").replaceFirst("https://libraries.minecraft.net","https://libraries.fastmcmirror.org");
+        return baseURL.replaceFirst("https://launchermeta.mojang.com","https://launchermeta.fastmcmirror.org").replaceFirst("https://resources.download.minecraft.net","https://resources.fastmcmirror.org").replaceFirst("https://libraries.minecraft.net","https://libraries.fastmcmirror.org").replaceFirst("https://maven.minecraftforge.net","https://forge.fastmcmirror.org").replaceFirst("https://files.minecraftforge.net/maven","https://forge.fastmcmirror.org").replaceFirst("https://meta.fabricmc.net","https://fabricmeta.fastmcmirror.org").replaceFirst("https://maven.fabricmc.net","https://fabric.fastmcmirror.org");
     }
 
     @Override
