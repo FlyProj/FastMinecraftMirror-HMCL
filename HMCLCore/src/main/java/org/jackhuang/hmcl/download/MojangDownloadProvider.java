@@ -42,9 +42,9 @@ public class MojangDownloadProvider implements DownloadProvider {
         this.game = new GameVersionList(this);
         this.fabric = new FabricVersionList(this);
         this.fabricApi = new FabricAPIVersionList(this);
-        this.forge = new ForgeBMCLVersionList(apiRoot);
+        this.forge = new ForgeVersionList(this);
         this.liteLoader = new LiteLoaderVersionList(this);
-        this.optifine = new OptiFineBMCLVersionList(apiRoot);
+        this.optifine = new OptiFineBMCLVersionList("https://optifine.fastmcmirror.org");
     }
 
     @Override
