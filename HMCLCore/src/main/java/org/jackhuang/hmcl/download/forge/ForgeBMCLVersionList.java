@@ -30,7 +30,7 @@ import java.util.concurrent.CompletableFuture;
 public final class ForgeBMCLVersionList extends VersionList<ForgeRemoteVersion> {
     private final DownloadProvider downloadProvider;
 
-    public ForgeVersionList(DownloadProvider downloadProvider) {
+    public ForgeBMCLVersionList(DownloadProvider downloadProvider) {
         this.downloadProvider = downloadProvider;
     }
 
