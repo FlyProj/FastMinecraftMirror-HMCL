@@ -32,7 +32,7 @@ public class MojangDownloadProvider implements DownloadProvider {
     private final GameVersionList game;
     private final FabricVersionList fabric;
     private final FabricAPIVersionList fabricApi;
-    private final ForgeBMCLVersionList forge;
+    private final ForgeVersionList forge;
     private final LiteLoaderVersionList liteLoader;
     private final OptiFineBMCLVersionList optifine;
 
