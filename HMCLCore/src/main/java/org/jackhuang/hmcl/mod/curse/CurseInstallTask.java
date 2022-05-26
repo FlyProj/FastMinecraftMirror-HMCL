@@ -22,10 +22,7 @@ import com.google.gson.reflect.TypeToken;
 import org.jackhuang.hmcl.download.DefaultDependencyManager;
 import org.jackhuang.hmcl.download.GameBuilder;
 import org.jackhuang.hmcl.game.DefaultGameRepository;
-import org.jackhuang.hmcl.mod.MinecraftInstanceTask;
-import org.jackhuang.hmcl.mod.Modpack;
-import org.jackhuang.hmcl.mod.ModpackConfiguration;
-import org.jackhuang.hmcl.mod.ModpackInstallTask;
+import org.jackhuang.hmcl.mod.*;
 import org.jackhuang.hmcl.task.Task;
 import org.jackhuang.hmcl.util.StringUtils;
 import org.jackhuang.hmcl.util.gson.JsonUtils;
@@ -35,6 +32,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -78,17 +76,19 @@ public final class CurseInstallTask extends Task<Void> {
             throw new IllegalArgumentException("Version " + name + " already exists.");
 
         GameBuilder builder = dependencyManager.gameBuilder().name(name).gameVersion(manifest.getMinecraft().getGameVersion());
-        for (CurseManifestModLoader modLoader : manifest.getMinecraft().getModLoaders())
-            if (modLoader.getId().startsWith("forge-"))
+        for (CurseManifestModLoader modLoader : manifest.getMinecraft().getModLoaders()) {
+            if (modLoader.getId().startsWith("forge-")) {
                 builder.version("forge", modLoader.getId().substring("forge-".length()));
-            else if (modLoader.getId().startsWith("fabric-"))
+            } else if (modLoader.getId().startsWith("fabric-")) {
                 builder.version("fabric", modLoader.getId().substring("fabric-".length()));
+            }
+        }
         dependents.add(builder.buildAsync());
 
         onDone().register(event -> {
             Exception ex = event.getTask().getException();
             if (event.isFailed()) {
-                if (!(ex instanceof CurseCompletionException)) {
+                if (!(ex instanceof ModpackCompletionException)) {
                     repository.removeVersionFromDisk(name);
                 }
             }
@@ -100,14 +100,14 @@ public final class CurseInstallTask extends Task<Void> {
                 config = JsonUtils.GSON.fromJson(FileUtils.readText(json), new TypeToken<ModpackConfiguration<CurseManifest>>() {
                 }.getType());
 
-                if (!MODPACK_TYPE.equals(config.getType()))
+                if (!CurseModpackProvider.INSTANCE.getName().equals(config.getType()))
                     throw new IllegalArgumentException("Version " + name + " is not a Curse modpack. Cannot update this version.");
             }
         } catch (JsonParseException | IOException ignore) {
         }
         this.config = config;
-        dependents.add(new ModpackInstallTask<>(zipFile, run, modpack.getEncoding(), manifest.getOverrides(), any -> true, config).withStage("hmcl.modpack"));
-        dependents.add(new MinecraftInstanceTask<>(zipFile, modpack.getEncoding(), manifest.getOverrides(), manifest, MODPACK_TYPE, manifest.getName(), manifest.getVersion(), repository.getModpackConfiguration(name)).withStage("hmcl.modpack"));
+        dependents.add(new ModpackInstallTask<>(zipFile, run, modpack.getEncoding(), Collections.singletonList(manifest.getOverrides()), any -> true, config).withStage("hmcl.modpack"));
+        dependents.add(new MinecraftInstanceTask<>(zipFile, modpack.getEncoding(), Collections.singletonList(manifest.getOverrides()), manifest, CurseModpackProvider.INSTANCE, manifest.getName(), manifest.getVersion(), repository.getModpackConfiguration(name)).withStage("hmcl.modpack"));
 
         dependencies.add(new CurseCompletionTask(dependencyManager, name, manifest));
     }
@@ -139,6 +139,4 @@ public final class CurseInstallTask extends Task<Void> {
         File root = repository.getVersionRoot(name);
         FileUtils.writeText(new File(root, "manifest.json"), JsonUtils.GSON.toJson(manifest));
     }
-
-    public static final String MODPACK_TYPE = "Curse";
 }

@@ -17,19 +17,10 @@
  */
 package org.jackhuang.hmcl.ui.versions;
 
-import org.jackhuang.hmcl.mod.LocalModFile;
-import org.jackhuang.hmcl.mod.RemoteMod;
+import org.jackhuang.hmcl.game.LocalizedRemoteModRepository;
 import org.jackhuang.hmcl.mod.RemoteModRepository;
 import org.jackhuang.hmcl.mod.curse.CurseForgeRemoteModRepository;
 import org.jackhuang.hmcl.mod.modrinth.ModrinthRemoteModRepository;
-import org.jackhuang.hmcl.util.StringUtils;
-
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 import static org.jackhuang.hmcl.util.i18n.I18n.i18n;
 
@@ -39,66 +30,25 @@ public class ModDownloadListPage extends DownloadListPage {
 
         repository = new Repository();
 
-
         supportChinese.set(true);
         downloadSources.get().setAll("mods.curseforge", "mods.modrinth");
         downloadSource.set("mods.curseforge");
     }
 
-    private class Repository implements RemoteModRepository {
+    private class Repository extends LocalizedRemoteModRepository {
 
         @Override
-        public Stream<RemoteMod> search(String gameVersion, Category category, int pageOffset, int pageSize, String searchFilter, SortType sort) throws IOException {
-            String newSearchFilter;
-            if (StringUtils.CHINESE_PATTERN.matcher(searchFilter).find()) {
-                List<ModTranslations.Mod> mods = ModTranslations.searchMod(searchFilter);
-                List<String> searchFilters = new ArrayList<>();
-                int count = 0;
-                for (ModTranslations.Mod mod : mods) {
-                    String englishName = mod.getName();
-                    if (StringUtils.isNotBlank(mod.getSubname())) {
-                        englishName = mod.getSubname();
-                    }
-
-                    searchFilters.add(englishName);
-
-                    count++;
-                    if (count >= 3) break;
-                }
-                newSearchFilter = String.join(" ", searchFilters);
-            } else {
-                newSearchFilter = searchFilter;
-            }
-
+        protected RemoteModRepository getBackedRemoteModRepository() {
             if ("mods.modrinth".equals(downloadSource.get())) {
-                return ModrinthRemoteModRepository.INSTANCE.search(gameVersion, category, pageOffset, pageSize, newSearchFilter, sort);
+                return ModrinthRemoteModRepository.MODS;
             } else {
-                return CurseForgeRemoteModRepository.MODS.search(gameVersion, category, pageOffset, pageSize, newSearchFilter, sort);
+                return CurseForgeRemoteModRepository.MODS;
             }
         }
 
         @Override
-        public Stream<Category> getCategories() throws IOException {
-            if ("mods.modrinth".equals(downloadSource.get())) {
-                return ModrinthRemoteModRepository.INSTANCE.getCategories();
-            } else {
-                return CurseForgeRemoteModRepository.MODS.getCategories();
-            }
-        }
-
-        @Override
-        public Optional<RemoteMod.Version> getRemoteVersionByLocalFile(LocalModFile localModFile, Path file) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public RemoteMod getModById(String id) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Stream<RemoteMod.Version> getRemoteVersionsById(String id) throws IOException {
-            throw new UnsupportedOperationException();
+        public Type getType() {
+            return Type.MOD;
         }
     }
 

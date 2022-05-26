@@ -17,6 +17,8 @@
  */
 package org.jackhuang.hmcl.mod;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
@@ -24,6 +26,16 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 public interface RemoteModRepository {
+
+    enum Type {
+        MOD,
+        MODPACK,
+        RESOURCE_PACK,
+        WORLD,
+        CUSTOMIZATION
+    }
+
+    Type getType();
 
     enum SortType {
         DATE_CREATED,
@@ -34,12 +46,19 @@ public interface RemoteModRepository {
         TOTAL_DOWNLOADS
     }
 
-    Stream<RemoteMod> search(String gameVersion, Category category, int pageOffset, int pageSize, String searchFilter, SortType sort)
+    enum SortOrder {
+        ASC,
+        DESC
+    }
+
+    Stream<RemoteMod> search(String gameVersion, @Nullable Category category, int pageOffset, int pageSize, String searchFilter, SortType sortType, SortOrder sortOrder)
             throws IOException;
 
     Optional<RemoteMod.Version> getRemoteVersionByLocalFile(LocalModFile localModFile, Path file) throws IOException;
 
     RemoteMod getModById(String id) throws IOException;
+
+    RemoteMod.File getModFile(String modId, String fileId) throws IOException;
 
     Stream<RemoteMod.Version> getRemoteVersionsById(String id) throws IOException;
 
@@ -70,7 +89,7 @@ public interface RemoteModRepository {
     }
 
     String[] DEFAULT_GAME_VERSIONS = new String[]{
-            "1.18.1", "1.18",
+            "1.18.2", "1.18.1", "1.18",
             "1.17.1", "1.17",
             "1.16.5", "1.16.4", "1.16.3", "1.16.2", "1.16.1", "1.16",
             "1.15.2", "1.15.1", "1.15",

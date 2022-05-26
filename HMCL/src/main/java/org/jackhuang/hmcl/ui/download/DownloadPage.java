@@ -31,7 +31,6 @@ import org.jackhuang.hmcl.setting.Profiles;
 import org.jackhuang.hmcl.task.FileDownloadTask;
 import org.jackhuang.hmcl.task.Schedulers;
 import org.jackhuang.hmcl.task.Task;
-import org.jackhuang.hmcl.task.TaskExecutor;
 import org.jackhuang.hmcl.ui.Controllers;
 import org.jackhuang.hmcl.ui.FXUtils;
 import org.jackhuang.hmcl.ui.SVG;
@@ -41,16 +40,13 @@ import org.jackhuang.hmcl.ui.animation.TransitionPane;
 import org.jackhuang.hmcl.ui.construct.AdvancedListBox;
 import org.jackhuang.hmcl.ui.construct.MessageDialogPane;
 import org.jackhuang.hmcl.ui.construct.TabHeader;
-import org.jackhuang.hmcl.ui.construct.TaskExecutorDialogPane;
 import org.jackhuang.hmcl.ui.decorator.DecoratorAnimatedPage;
 import org.jackhuang.hmcl.ui.decorator.DecoratorPage;
-import org.jackhuang.hmcl.ui.versions.DownloadListPage;
-import org.jackhuang.hmcl.ui.versions.ModDownloadListPage;
-import org.jackhuang.hmcl.ui.versions.VersionPage;
-import org.jackhuang.hmcl.ui.versions.Versions;
+import org.jackhuang.hmcl.ui.versions.*;
 import org.jackhuang.hmcl.ui.wizard.Navigation;
 import org.jackhuang.hmcl.ui.wizard.WizardController;
 import org.jackhuang.hmcl.ui.wizard.WizardProvider;
+import org.jackhuang.hmcl.util.TaskCancellationAction;
 import org.jackhuang.hmcl.util.io.NetworkUtils;
 import org.jackhuang.hmcl.util.platform.OperatingSystem;
 import org.jetbrains.annotations.Nullable;
@@ -83,7 +79,7 @@ public class DownloadPage extends DecoratorAnimatedPage implements DecoratorPage
         newGameTab.setNodeSupplier(loadVersionFor(() -> new VersionsPage(versionPageNavigator, i18n("install.installer.choose", i18n("install.installer.game")), "", DownloadProviders.getDownloadProvider(),
                 "game", versionPageNavigator::onGameSelected)));
         modpackTab.setNodeSupplier(loadVersionFor(() -> {
-            DownloadListPage page = new DownloadListPage(CurseForgeRemoteModRepository.MODPACKS, Versions::downloadModpackImpl);
+            ModpackDownloadListPage page = new ModpackDownloadListPage(Versions::downloadModpackImpl, false);
 
             JFXButton installLocalModpackButton = new JFXButton(i18n("install.modpack"));
             installLocalModpackButton.setButtonType(JFXButton.ButtonType.RAISED);
@@ -175,10 +171,7 @@ public class DownloadPage extends DecoratorAnimatedPage implements DecoratorPage
             }
             Path dest = runDirectory.resolve(subdirectoryName).resolve(result);
 
-            TaskExecutorDialogPane downloadingPane = new TaskExecutorDialogPane(it -> {
-            });
-
-            TaskExecutor executor = Task.composeAsync(() -> {
+            Controllers.taskDialog(Task.composeAsync(() -> {
                 FileDownloadTask task = new FileDownloadTask(NetworkUtils.toURL(file.getFile().getUrl()), dest.toFile());
                 task.setName(file.getName());
                 return task;
@@ -192,11 +185,7 @@ public class DownloadPage extends DecoratorAnimatedPage implements DecoratorPage
                 } else {
                     Controllers.showToast(i18n("install.success"));
                 }
-            }).executor(false);
-
-            downloadingPane.setExecutor(executor, true);
-            Controllers.dialog(downloadingPane);
-            executor.start();
+            }), i18n("message.downloading"), TaskCancellationAction.NORMAL);
 
             resolve.run();
         }, file.getFile().getFilename());

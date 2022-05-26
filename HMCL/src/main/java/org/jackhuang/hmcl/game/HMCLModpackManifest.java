@@ -17,8 +17,16 @@
  */
 package org.jackhuang.hmcl.game;
 
-public final class HMCLModpackManifest {
+import org.jackhuang.hmcl.mod.ModpackManifest;
+import org.jackhuang.hmcl.mod.ModpackProvider;
+
+public final class HMCLModpackManifest implements ModpackManifest {
     public static final HMCLModpackManifest INSTANCE = new HMCLModpackManifest();
 
     private HMCLModpackManifest() {}
+
+    @Override
+    public ModpackProvider getProvider() {
+        return HMCLModpackProvider.INSTANCE;
+    }
 }
