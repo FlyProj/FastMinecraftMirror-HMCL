@@ -173,7 +173,7 @@ public class DownloadListPage extends Control implements DecoratorPage, VersionP
             }
             return gameVersion;
         }).thenApplyAsync(gameVersion -> {
-            return repository.search(gameVersion, category, pageOffset, 50, searchFilter, sort);
+            return repository.search(gameVersion, category, pageOffset, 50, searchFilter, sort, RemoteModRepository.SortOrder.DESC);
         }).whenComplete(Schedulers.javafx(), (result, exception) -> {
             setLoading(false);
             if (exception == null) {
@@ -191,7 +191,10 @@ public class DownloadListPage extends Control implements DecoratorPage, VersionP
     }
 
     protected String getLocalizedCategoryIndent(ModDownloadListPageSkin.CategoryIndented category) {
-        return StringUtils.repeats(' ', category.indent * 4) + getLocalizedCategory(category.getCategory() == null ? "0" : category.getCategory().getId());
+        return StringUtils.repeats(' ', category.indent * 4) +
+                (category.getCategory() == null
+                        ? i18n("curse.category.0")
+                        : getLocalizedCategory(category.getCategory().getId()));
     }
 
     protected String getLocalizedOfficialPage() {
@@ -243,13 +246,19 @@ public class DownloadListPage extends Control implements DecoratorPage, VersionP
             {
                 int rowIndex = 0;
 
-                if (control.versionSelection) {
-                    JFXComboBox<String> versionsComboBox = new JFXComboBox<>();
-                    versionsComboBox.setMaxWidth(Double.MAX_VALUE);
-                    Bindings.bindContent(versionsComboBox.getItems(), control.versions);
-                    selectedItemPropertyFor(versionsComboBox).bindBidirectional(control.selectedVersion);
+                if (control.versionSelection || !control.downloadSources.isEmpty()) {
+                    searchPane.addRow(rowIndex);
+                    int columns = 0;
+                    Node lastNode = null;
+                    if (control.versionSelection) {
+                        JFXComboBox<String> versionsComboBox = new JFXComboBox<>();
+                        versionsComboBox.setMaxWidth(Double.MAX_VALUE);
+                        Bindings.bindContent(versionsComboBox.getItems(), control.versions);
+                        selectedItemPropertyFor(versionsComboBox).bindBidirectional(control.selectedVersion);
 
-                    searchPane.addRow(rowIndex, new Label(i18n("version")), versionsComboBox);
+                        searchPane.add(new Label(i18n("version")), columns++, rowIndex);
+                        searchPane.add(lastNode = versionsComboBox, columns++, rowIndex);
+                    }
 
                     if (control.downloadSources.getSize() > 1) {
                         JFXComboBox<String> downloadSourceComboBox = new JFXComboBox<>();
@@ -258,10 +267,12 @@ public class DownloadListPage extends Control implements DecoratorPage, VersionP
                         downloadSourceComboBox.setConverter(stringConverter(I18n::i18n));
                         selectedItemPropertyFor(downloadSourceComboBox).bindBidirectional(control.downloadSource);
 
-                        searchPane.add(new Label(i18n("settings.launcher.download_source")), 2, rowIndex);
-                        searchPane.add(downloadSourceComboBox, 3, rowIndex);
-                    } else {
-                        GridPane.setColumnSpan(versionsComboBox, 3);
+                        searchPane.add(new Label(i18n("settings.launcher.download_source")), columns++, rowIndex);
+                        searchPane.add(lastNode = downloadSourceComboBox, columns++, rowIndex);
+                    }
+
+                    if (columns == 2) {
+                        GridPane.setColumnSpan(lastNode, 3);
                     }
 
                     rowIndex++;
@@ -301,15 +312,17 @@ public class DownloadListPage extends Control implements DecoratorPage, VersionP
                 categoryComboBox.setPromptText(i18n("mods.category"));
                 categoryComboBox.getSelectionModel().select(0);
                 categoryComboBox.setConverter(stringConverter(getSkinnable()::getLocalizedCategoryIndent));
-                Task.supplyAsync(() -> getSkinnable().repository.getCategories())
-                        .thenAcceptAsync(Schedulers.javafx(), categories -> {
-                            List<CategoryIndented> result = new ArrayList<>();
-                            result.add(new CategoryIndented(0, null));
-                            for (RemoteModRepository.Category category : Lang.toIterable(categories)) {
-                                resolveCategory(category, 0, result);
-                            }
-                            categoryComboBox.getItems().setAll(result);
-                        }).start();
+                FXUtils.onChangeAndOperate(getSkinnable().downloadSource, downloadSource -> {
+                    Task.supplyAsync(() -> getSkinnable().repository.getCategories())
+                            .thenAcceptAsync(Schedulers.javafx(), categories -> {
+                                List<CategoryIndented> result = new ArrayList<>();
+                                result.add(new CategoryIndented(0, null));
+                                for (RemoteModRepository.Category category : Lang.toIterable(categories)) {
+                                    resolveCategory(category, 0, result);
+                                }
+                                categoryComboBox.getItems().setAll(result);
+                            }).start();
+                });
 
                 StackPane sortStackPane = new StackPane();
                 JFXComboBox<RemoteModRepository.SortType> sortComboBox = new JFXComboBox<>();
@@ -390,8 +403,8 @@ public class DownloadListPage extends Control implements DecoratorPage, VersionP
                     @Override
                     protected void updateControl(RemoteMod dataItem, boolean empty) {
                         if (empty) return;
-                        ModTranslations.Mod mod = ModTranslations.getModByCurseForgeId(dataItem.getSlug());
-                        content.setTitle(mod != null ? mod.getDisplayName() : dataItem.getTitle());
+                        ModTranslations.Mod mod = ModTranslations.getTranslationsByRepositoryType(getSkinnable().repository.getType()).getModByCurseForgeId(dataItem.getSlug());
+                        content.setTitle(mod != null && I18n.getCurrentLocale().getLocale() == Locale.CHINA ? mod.getDisplayName() : dataItem.getTitle());
                         content.setSubtitle(dataItem.getDescription());
                         content.getTags().setAll(dataItem.getCategories().stream()
                                 .map(category -> getSkinnable().getLocalizedCategory(category))
