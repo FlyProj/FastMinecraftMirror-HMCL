@@ -43,7 +43,7 @@ val buildNumber = System.getenv("BUILD_NUMBER")?.toInt().let { number ->
 val versionRoot = System.getenv("VERSION_ROOT") ?: "3.5"
 val microsoftAuthId = System.getenv("MICROSOFT_AUTH_ID") ?: ""
 val microsoftAuthSecret = System.getenv("MICROSOFT_AUTH_SECRET") ?: ""
-val versionType = System.getenv("VERSION_TYPE") ?: "nightly"
+val versionType = "nightly"
 
 version = "$versionRoot.$buildNumber"
 

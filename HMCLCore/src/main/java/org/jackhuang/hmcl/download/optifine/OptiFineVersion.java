@@ -25,38 +25,30 @@ import com.google.gson.annotations.SerializedName;
  */
 public final class OptiFineVersion {
 
-    @SerializedName("dl")
+    @SerializedName("url")
     private final String downloadLink;
 
-    @SerializedName("ver")
-    private final String version;
-
-    @SerializedName("date")
-    private final String date;
+    @SerializedName("name")
+    private final String name;
 
     @SerializedName("type")
     private final String type;
 
-    @SerializedName("patch")
+    @SerializedName("version")
     private final String patch;
-
-    @SerializedName("mirror")
-    private final String mirror;
 
     @SerializedName("mcversion")
     private final String gameVersion;
 
     public OptiFineVersion() {
-        this(null, null, null, null, null, null, null);
+        this(null, null, null, null, null);
     }
 
-    public OptiFineVersion(String downloadLink, String version, String date, String type, String patch, String mirror, String gameVersion) {
+    public OptiFineVersion(String downloadLink, String name, String type, String patch, String gameVersion) {
         this.downloadLink = downloadLink;
-        this.version = version;
-        this.date = date;
+        this.name = name;
         this.type = type;
         this.patch = patch;
-        this.mirror = mirror;
         this.gameVersion = gameVersion;
     }
 
@@ -64,12 +56,8 @@ public final class OptiFineVersion {
         return downloadLink;
     }
 
-    public String getVersion() {
-        return version;
-    }
-
-    public String getDate() {
-        return date;
+    public String getName() {
+        return name;
     }
 
     public String getType() {
@@ -78,10 +66,6 @@ public final class OptiFineVersion {
 
     public String getPatch() {
         return patch;
-    }
-
-    public String getMirror() {
-        return mirror;
     }
 
     public String getGameVersion() {

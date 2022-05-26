@@ -1,7 +1,13 @@
-# ⛏ Hello Minecraft! Launcher 💎
-[![Build Status](https://ci.huangyuhui.net/job/HMCL/badge/icon?.svg)](https://ci.huangyuhui.net/job/HMCL)
+# ⛏ Hello Minecraft! Launcher For FastMinecraftMirror 💎
+[![Build Status](https://2b2t.asia:10000/job/FastMinecraftMirror-HMCL/badge/icon?.svg)](https://2b2t.asia:10000/job/FastMinecraftMirror-HMCL)
 
-Join chat! ![Discord](https://img.shields.io/discord/879708313435123742?style=plastic) [Discord](https://discord.gg/jVvC7HfM6U)  [KaiHeiLa](https://kaihei.co/Kx7n3t)
+## About this Modify Version
+
+This Version is Using FastMinecraftMirror
+
+Mojang, Fabric, Forge, Optifine Mirror Services
+
+About FastMinecraftMirror Usage & Information Please Go To [Here](https://fastmcmirror.org)
 
 ## Introduction
 

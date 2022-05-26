@@ -64,8 +64,8 @@ public final class FabricVersionList extends VersionList<FabricRemoteVersion> {
         }));
     }
 
-    private static final String LOADER_META_URL = "https://meta.fabricmc.net/v2/versions/loader";
-    private static final String GAME_META_URL = "https://meta.fabricmc.net/v2/versions/game";
+    private static final String LOADER_META_URL = "https://fabricmeta.fastmcmirror.org/v2/versions/loader";
+    private static final String GAME_META_URL = "https://fabricmeta.fastmcmirror.org/v2/versions/game";
 
     private List<String> getGameVersions(String metaUrl) throws IOException {
         String json = NetworkUtils.doGet(NetworkUtils.toURL(downloadProvider.injectURL(metaUrl)));
@@ -74,7 +74,7 @@ public final class FabricVersionList extends VersionList<FabricRemoteVersion> {
     }
 
     private static String getLaunchMetaUrl(String gameVersion, String loaderVersion) {
-        return String.format("https://meta.fabricmc.net/v2/versions/loader/%s/%s", gameVersion, loaderVersion);
+        return String.format("https://fabricmeta.fastmcmirror.org/v2/versions/loader/%s/%s", gameVersion, loaderVersion);
     }
 
     private static class GameVersion {

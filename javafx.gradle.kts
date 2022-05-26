@@ -21,7 +21,7 @@ data class Platform(
 
     fun fileUrl(
         module: String, classifier: String, ext: String,
-        repo: String = "https://repo1.maven.org/maven2"
+        repo: String = "https://maven.aliyun.com/repository/central"
     ): java.net.URL =
         java.net.URL(
             "$repo/${groupId.replace('.', '/')}/javafx-$module/$version/javafx-$module-$version-$classifier.$ext"

@@ -60,11 +60,11 @@ public final class OptiFineBMCLVersionList extends VersionList<OptiFineRemoteVer
                         Set<String> duplicates = new HashSet<>();
                         for (OptiFineVersion element : root) {
                             String version = element.getType() + "_" + element.getPatch();
-                            String mirror = "https://optifine.fastmcmirror.org/OptiFine_" + element.getGameVersion() + "_" + element.getType() + "_" + element.getPatch() + ".jar";
+                            String mirror = element.getDownloadLink();
                             if (!duplicates.add(mirror))
                                 continue;
 
-                            boolean isPre = element.getPatch() != null && (element.getPatch().startsWith("pre") || element.getPatch().startsWith("alpha"));
+                            boolean isPre = !element.getName().equals("OptiFine") && (element.getPatch().contains("pre") || element.getPatch().contains("alpha"));
 
                             if (StringUtils.isBlank(element.getGameVersion()))
                                 continue;
