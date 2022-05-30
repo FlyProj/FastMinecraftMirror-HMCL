@@ -101,6 +101,8 @@ public final class LiteLoaderVersionList extends VersionList<LiteLoaderRemoteVer
     public static final String LITELOADER_LIST = "https://liteloader.fastmcmirror.org/versions/versions.json";
 
     private static String getLatestSnapshotVersion(String repo) throws Exception {
+        repo = repo.replace("https://repo.mumfrey.com/","https://liteloader.fastmcmirror.org/")
+                .replace("http://repo.mumfrey.com/","https://liteloader.fastmcmirror.org/");
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
         Document doc = builder.parse(repo + "maven-metadata.xml");

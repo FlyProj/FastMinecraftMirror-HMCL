@@ -88,7 +88,9 @@ public class MojangDownloadProvider implements DownloadProvider {
                 .replaceFirst("https://meta.fabricmc.net","https://fabricmeta.fastmcmirror.org")
                 .replaceFirst("https://maven.fabricmc.net","https://fabric.fastmcmirror.org")
                 .replace("http://repo.mumfrey.com/","https://liteloader.fastmcmirror.org/")
-                .replace("https://repo.mumfrey.com/","https://liteloader.fastmcmirror.org/");
+                .replace("https://repo.mumfrey.com/","https://liteloader.fastmcmirror.org/")
+                .replace("http://dl.liteloader.com/repo/","https://liteloader.fastmcmirror.org/content/repositories/liteloader/")
+                .replace("https://dl.liteloader.com/repo/","https://liteloader.fastmcmirror.org/content/repositories/liteloader/");
     }
 
     @Override
