@@ -98,7 +98,7 @@ public final class LiteLoaderVersionList extends VersionList<LiteLoaderRemoteVer
                 });
     }
 
-    public static final String LITELOADER_LIST = "http://dl.liteloader.com/versions/versions.json";
+    public static final String LITELOADER_LIST = "https://liteloader.fastmcmirror.org/versions/versions.json";
 
     private static String getLatestSnapshotVersion(String repo) throws Exception {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();

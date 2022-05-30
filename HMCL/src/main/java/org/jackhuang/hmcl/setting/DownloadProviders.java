@@ -54,8 +54,6 @@ public final class DownloadProviders {
     private static final AdaptedDownloadProvider fileDownloadProvider = new AdaptedDownloadProvider();
 
     private static final MojangDownloadProvider MOJANG;
-    private static final BMCLAPIDownloadProvider BMCLAPI;
-    private static final BMCLAPIDownloadProvider MCBBS;
 
     public static final String DEFAULT_PROVIDER_ID = "balanced";
     public static final String DEFAULT_RAW_PROVIDER_ID = "mcbbs";
@@ -63,27 +61,16 @@ public final class DownloadProviders {
     private static final InvalidationListener observer;
 
     static {
-        String bmclapiRoot = "https://bmclapi2.bangbang93.com";
-        String bmclapiRootOverride = System.getProperty("hmcl.bmclapi.override");
-        if (bmclapiRootOverride != null) bmclapiRoot = bmclapiRootOverride;
 
         MOJANG = new MojangDownloadProvider();
-        BMCLAPI = new BMCLAPIDownloadProvider(bmclapiRoot);
-        MCBBS = new BMCLAPIDownloadProvider("https://download.mcbbs.net");
         rawProviders = mapOf(
-                pair("mojang", MOJANG),
-                pair("bmclapi", BMCLAPI),
-                pair("mcbbs", MCBBS)
+                pair("mojang", MOJANG)
         );
 
         AdaptedDownloadProvider fileProvider = new AdaptedDownloadProvider();
-        fileProvider.setDownloadProviderCandidates(Arrays.asList(MCBBS, BMCLAPI, MOJANG));
-        BalancedDownloadProvider balanced = new BalancedDownloadProvider(Arrays.asList(MCBBS, BMCLAPI, MOJANG));
-
+        fileProvider.setDownloadProviderCandidates(Arrays.asList(MOJANG));
         providersById = mapOf(
-                pair("official", new AutoDownloadProvider(MOJANG, fileProvider)),
-                pair("balanced", new AutoDownloadProvider(balanced, fileProvider)),
-                pair("mirror", new AutoDownloadProvider(MCBBS, fileProvider)));
+                pair("official", new AutoDownloadProvider(MOJANG, fileProvider)));
 
         observer = FXUtils.observeWeak(() -> {
             FetchTask.setDownloadExecutorConcurrency(
