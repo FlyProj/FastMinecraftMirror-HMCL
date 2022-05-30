@@ -109,7 +109,7 @@ public class AboutPage extends StackPane {
             fmcm.setTitle("FastMinecraftMirror");
             fmcm.setSubtitle("A Minecraft Mirror Services");
             contributors.setExternalLink("https://fastmcmirror.org");
-            thanks.getContent().setAll(yushijinhun, bangbang93, glavo, mcbbs, mcmod, noin, gamerteam, redLnn, contributors);
+            thanks.getContent().setAll(fmcm,yushijinhun, bangbang93, glavo, mcbbs, mcmod, noin, gamerteam, redLnn, contributors);
         }
 
         ComponentList community = new ComponentList();
