@@ -104,6 +104,11 @@ public class AboutPage extends StackPane {
             contributors.setSubtitle(i18n("about.thanks_to.contributors.statement"));
             contributors.setExternalLink("https://github.com/huanghongxun/HMCL/graphs/contributors");
 
+            IconedTwoLineListItem fmcm = new IconedTwoLineListItem();
+            fmcm.setImage(new Image("/assets/img/craft_table.png", 32, 32, false, true));
+            fmcm.setTitle("FastMinecraftMirror");
+            fmcm.setSubtitle("A Minecraft Mirror Services");
+            contributors.setExternalLink("https://fastmcmirror.org");
             thanks.getContent().setAll(yushijinhun, bangbang93, glavo, mcbbs, mcmod, noin, gamerteam, redLnn, contributors);
         }
 
